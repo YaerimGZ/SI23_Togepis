@@ -48,11 +48,11 @@ git pull
 Los siguientes comandos:
 
 1. (fetch) Buscan los cambios en el upstream
-2. (rebase) Integran los cambios del upstream a tu repositorio local
+2. (merge) Integran los cambios del upstream a tu repositorio local
 3. (push) Sincronizan los cambios del repositorio local (que vienen del upstream) a tu repositorio remoto en github
 
 ```
 git fetch upstream
-git rebase upstream/master
+git merge upstream/master
 git push
 ```
