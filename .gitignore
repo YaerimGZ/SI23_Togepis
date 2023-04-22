@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 *.ini
 ejercicio_5-MLP_reg/test_preds.csv
+ejercicio_7-cnns/data/
