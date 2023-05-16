@@ -40,6 +40,7 @@ def predict(img_title_paths):
         _, predicted_class = output.max(1)
         pred_label = str(predicted_class.item())
 
+
         # Original / transformada
         # pred_label (str): nombre de la clase predicha
         h, w = original.shape[:2]
