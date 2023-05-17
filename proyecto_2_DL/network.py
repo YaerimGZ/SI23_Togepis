@@ -15,9 +15,11 @@ class Network(nn.Module):
         out_dim = self.calc_out_dim(input_dim, kernel_size=3, stride=1, padding=1)
 
         # TODO: Define las capas de tu red
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-        self.fc = nn.Linear(out_dim * out_dim * 128, n_classes)
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(out_dim * out_dim * 128, 256)
+        self.fc2 = nn.Linear(256, n_classes)
 
         self.to(self.device)
  
@@ -28,9 +30,14 @@ class Network(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # TODO: Define la propagacion hacia adelante de tu red
         x = F.relu(self.conv1(x))
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
         x = F.relu(self.conv2(x))
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
+        x = F.relu(self.conv3(x))
+        x = F.max_pool2d(x, kernel_size=2, stride=2)
         x = x.view(x.size(0), -1)
-        logits = self.fc(x)
+        x = F.relu(self.fc1(x))
+        logits = self.fc2(x)
         proba = F.softmax(logits, dim=1)
         return logits, proba
 
