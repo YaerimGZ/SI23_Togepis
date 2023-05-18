@@ -29,10 +29,11 @@ def validation_step(val_loader, net, cost_function):
         batch_imgs = batch['transformed']
         batch_labels = batch['label']
         device = net.device
+        batch_imgs = batch_imgs.to(device)
         batch_labels = batch_labels.to(device)
         with torch.inference_mode():
             # TODO: realiza un forward pass, calcula el loss y acumula el costo
-            logits, proba = net(batch_imgs)
+            logits, _ = net(batch_imgs)
             loss = cost_function(logits, batch_labels)
             val_loss += loss.item()
     # TODO: Regresa el costo promedio por minibatch
@@ -58,24 +59,30 @@ def train():
 
     plotter = PlotLosses()
     # Instanciamos tu red
-    modelo = Network(input_dim = 48,
-                     n_classes = 7)
+    modelo = Network(input_dim = 6, n_classes = 7)
 
     # TODO: Define la funcion de costo
+
     criterion = nn.CrossEntropyLoss()
 
     # Define el optimizador
     optimizer = optim.Adam(modelo.parameters(), lr=learning_rate)
 
     best_epoch_loss = np.inf
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    modelo.to(device)
+
     for epoch in range(n_epochs):
         train_loss = 0
         for i, batch in enumerate(tqdm(train_loader, desc=f"Epoch: {epoch}")):
             batch_imgs = batch['transformed']
             batch_labels = batch['label']
             # TODO Zero grad, forward pass, backward pass, optimizer step
+            batch_imgs = batch_imgs.to(device)
+            batch_labels = batch_labels.to(device)
+
             optimizer.zero_grad()
-            logits, proba = modelo(batch_imgs)
+            logits, _ = modelo(batch_imgs)
             loss = criterion(logits, batch_labels)
             loss.backward()
             optimizer.step()
@@ -91,7 +98,7 @@ def train():
         # TODO guarda el modelo si el costo de validación es menor al mejor costo de validación
         if val_loss < best_epoch_loss:
             best_epoch_loss = val_loss
-            modelo.save_model("best_model.pt")
+            modelo.save_model("best_model.pth")
 
         plotter.on_epoch_end(epoch, train_loss, val_loss)
     plotter.on_train_end()

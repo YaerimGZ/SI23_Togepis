@@ -8,7 +8,7 @@ from utils import to_numpy, get_transforms, add_img_text
 from dataset import EMOTIONS_MAP
 import pathlib
 
-file_path = pathlib.Path(__file__).parent.absolute()
+file_path = pathlib.Path(_file_).parent.absolute()
 
 def load_img(path):
     assert os.path.isfile(path), f"El archivo {path} no existe"
@@ -40,7 +40,6 @@ def predict(img_title_paths):
         _, predicted_class = output.max(1)
         pred_label = str(predicted_class.item())
 
-
         # Original / transformada
         # pred_label (str): nombre de la clase predicha
         h, w = original.shape[:2]
@@ -55,7 +54,7 @@ def predict(img_title_paths):
         cv2.imshow("Predicción - transformed", denormalized)
         cv2.waitKey(0)
 
-if __name__=="__main__":
+if _name__=="__main_":
     # Direcciones relativas a este archivo
     img_paths = ["./test_imgs/happy.png"]
     predict(img_paths)
