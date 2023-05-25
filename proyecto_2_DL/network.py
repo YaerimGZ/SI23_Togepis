@@ -43,13 +43,12 @@ class Network(nn.Module):
         x = F.relu(self.conv3(x))
         x = F.max_pool2d(x, kernel_size=2, stride=2)
 
+        x = self.dropout3(x)
+
         print(x.shape)
         x = torch.flatten(x, start_dim=1)
         print(x.shape)
         x = F.relu(self.fc1(x))
-        print(x.shape)
-        x = self.dropout3(x)
-
         logits = self.fc2(x)
         proba = F.softmax(logits, dim=1)
         return logits, proba

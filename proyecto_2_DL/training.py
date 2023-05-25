@@ -72,7 +72,6 @@ def train():
     modelo = Network(input_dim = 48, n_classes = 7)
 
     # TODO: Define la funcion de costo
-
     criterion = nn.CrossEntropyLoss()
 
     # Define el optimizador
