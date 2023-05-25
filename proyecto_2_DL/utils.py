@@ -28,6 +28,8 @@ def get_transforms(split, img_size):
                                                 contrast=0.4,
                                                 saturation=0,
                                                 hue=0),
+            torchvision.transforms.RandomHorizontalFlip(),
+            torchvision.transforms.RandomRotation(10),
             torchvision.transforms.Normalize((mean,), (std,))
         ])
     else:
