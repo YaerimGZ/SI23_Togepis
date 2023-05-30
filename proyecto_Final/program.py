@@ -61,11 +61,11 @@ optimizer = optim.Adam(model.parameters(), lr = LR)
 criterion = nn.CrossEntropyLoss()
 
 data_path = 'C:/Users/ruizd/Downloads/jpg/'
-label_path = 'proyecto_Final/train/imagelabels.mat'
+label_path = 'proyecto_Final/labels/imagelabels.mat'
 label_arr = scp.loadmat(label_path)['labels']
 label_arr -= 1
 
-df = pd.read_csv("proyecto_Final/train/flower_classification_labels.csv")
+df = pd.read_csv("proyecto_Final/labels/flower_classification_labels.csv")
 CLASSES = df["class"].tolist()
 
 #sorted(os.listdir(data_path))[0]
