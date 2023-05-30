@@ -43,7 +43,7 @@ NUM_OUT_CH = [8, 16]
 IMAGE_W = 200
 IMAGE_H = 200
 BATCH_SIZE = 64
-NUM_EPOCHS = 4
+NUM_EPOCHS = 10
 LR = 0.001
 
 # Device
@@ -65,6 +65,9 @@ label_path = 'proyecto_Final/train/imagelabels.mat'
 label_arr = scp.loadmat(label_path)['labels']
 label_arr -= 1
 
+df = pd.read_csv("proyecto_Final/train/flower_classification_labels.csv")
+CLASSES = df["class"].tolist()
+
 #sorted(os.listdir(data_path))[0]
 fig, ax = plt.subplots(nrows=2, ncols=4, figsize=(8,6))
 image_num = random.sample(range(1,8190), 8)
@@ -73,7 +76,7 @@ for i in range(2):
     image = skio.imread(os.path.join(data_path, f'image_{image_num[i*4+j]:05}.jpg'))
     ax[i,j].imshow(image)
     ax[i,j].axis('off')
-    ax[i,j].set_title(f'label = {label_arr[0,image_num[i*4+j]]}')
+    ax[i,j].set_title(f'label = {CLASSES[label_arr[0,image_num[i*4+j]]]}')
 plt.show()
 
 # data frame: index: 8189; columns: 'path', 'label
@@ -84,3 +87,101 @@ metadata = pd.DataFrame(
      'image_label': labels_list}
 )
 metadata
+
+class MyFlowerDataset(Dataset):
+  def __init__(self, metadata, transform=None):
+    self.metadata = metadata
+    self.transform = transform
+
+  def __len__(self):
+    return len(self.metadata)
+
+  def __getitem__(self, idx):
+    image_path = self.metadata.iloc[idx, 0]
+    image = skio.imread(image_path)
+    label = torch.tensor(int(metadata.iloc[idx, 1]))
+    label = F.one_hot(label, num_classes=102)
+    label = label.float()
+    if self.transform:
+      image = self.transform(image)
+
+    return (image, label)
+
+flower_transform = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize((IMAGE_W, IMAGE_H)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))
+])
+
+dataset = MyFlowerDataset(metadata, transform = flower_transform)
+
+# Splitting dataset into train and test
+train_set, test_set = torch.utils.data.random_split(dataset, [6500, 1689])
+
+# defining the dataloaders
+train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)
+test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True)
+
+for x,y in train_loader:
+  x = x.to(device)
+  fig, ax = plt.subplots(nrows=2, ncols=4, figsize=(12,8))
+  for i in range(2):
+    for j in range(4):
+      ax[i,j].imshow(x[i*4+j].cpu().permute(1,2,0))
+      ax[i,j].axis('off')
+  break
+plt.show()
+
+#TRAINING
+
+def check_accuracy(loader, model):
+  num_corrects = 0
+  num_samples = 0
+  model.eval()
+
+  with torch.no_grad():
+    for x,y in loader:
+      # sending the data to the device
+      x = x.to(device)
+      y = y.to(device)
+
+      # preparing the data for the model
+
+
+      # forward
+      y_hat = model(x)
+
+      # calculate the accuracy
+      _, labels = y.max(1)
+      _, predictions = y_hat.max(1)
+      num_corrects += (predictions == labels).sum()
+      num_samples += predictions.size(0)
+
+  print(f"Accuracy: {num_corrects}/{num_samples}: {num_corrects/num_samples*100:.2f}")
+  model.train()
+
+
+for epoch in range(NUM_EPOCHS):
+  running_loss = 0
+  with tqdm.tqdm(train_loader, unit='batch') as tepoch:
+    for index, (x,y) in enumerate(tepoch):
+      # send the data to the device
+      x = x.to(device)
+      y = y.to(device)
+
+      # prepare the data
+
+
+      # forward
+      y_hat = model(x)
+      loss = criterion(y_hat, y)
+      running_loss += loss
+
+      # backward
+      optimizer.zero_grad()
+      loss.backward()
+      optimizer.step()
+      tepoch.set_postfix(loss=loss.item())
+    print(f"Epoch {epoch}: loss: {running_loss}")
+    check_accuracy(test_loader, model)
