@@ -60,7 +60,7 @@ optimizer = optim.Adam(model.parameters(), lr = LR)
 # Loss Function
 criterion = nn.CrossEntropyLoss()
 
-data_path = 'C:/Users/ruizd/Downloads/jpg/'
+data_path = 'D:/Documents/8vo Semestre/Sistemas Inteligentes/jpg/'
 label_path = 'proyecto_Final/labels/imagelabels.mat'
 label_arr = scp.loadmat(label_path)['labels']
 label_arr -= 1
@@ -160,28 +160,70 @@ def check_accuracy(loader, model):
 
   print(f"Accuracy: {num_corrects}/{num_samples}: {num_corrects/num_samples*100:.2f}")
   model.train()
+  return num_corrects, num_samples
 
+
+epoch_list = []
+accuracy_list = []
+loss_list = []
 
 for epoch in range(NUM_EPOCHS):
-  running_loss = 0
-  with tqdm.tqdm(train_loader, unit='batch') as tepoch:
-    for index, (x,y) in enumerate(tepoch):
-      # send the data to the device
-      x = x.to(device)
-      y = y.to(device)
+    running_loss = 0
+    with tqdm.tqdm(train_loader, unit='batch') as tepoch:
+        for index, (x,y) in enumerate(tepoch):
+            # send the data to the device
+            x = x.to(device)
+            y = y.to(device)
 
-      # prepare the data
+            # prepare the data
 
+            # forward
+            y_hat = model(x)
+            loss = criterion(y_hat, y)
+            running_loss += loss
 
-      # forward
-      y_hat = model(x)
-      loss = criterion(y_hat, y)
-      running_loss += loss
+            # backward
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+            tepoch.set_postfix(loss=loss.item())
 
-      # backward
-      optimizer.zero_grad()
-      loss.backward()
-      optimizer.step()
-      tepoch.set_postfix(loss=loss.item())
-    print(f"Epoch {epoch}: loss: {running_loss}")
-    check_accuracy(test_loader, model)
+        epoch_list.append(epoch)
+        loss_list.append(running_loss.item())
+
+        print(f"Epoch {epoch}: loss: {running_loss}")
+        num_corrects, num_samples = check_accuracy(test_loader, model)
+
+        # Calculate accuracy and append to lists
+        accuracy = num_corrects / num_samples * 100
+        accuracy_list.append(accuracy)
+
+epoch_list = torch.tensor(epoch_list)
+accuracy_list = torch.tensor(accuracy_list)
+loss_list = torch.tensor(loss_list)
+
+epoch_list = epoch_list.cpu().numpy()
+accuracy_list = accuracy_list.cpu().numpy()
+loss_list = loss_list.cpu().numpy()
+
+torch.save(model.state_dict(), "models/my_model.pth")
+
+# Plot accuracy vs epoch
+plt.figure(figsize=(8, 6))
+plt.plot(epoch_list, accuracy_list, label='Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Accuracy vs Epoch')
+plt.legend()
+plt.savefig('figures/accuracy_vs_epoch.png')
+plt.show()
+
+# Plot loss vs epoch
+plt.figure(figsize=(8, 6))
+plt.plot(epoch_list, loss_list, label='Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Loss vs Epoch')
+plt.legend()
+plt.savefig('figures/loss_vs_epoch.png')
+plt.show()
