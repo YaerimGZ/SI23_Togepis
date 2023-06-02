@@ -140,6 +140,7 @@ proyecto_2_DL/models/*.pt
 proyecto_2_DL/data/*.csv
 proyecto_2_DL/data/*.csv
 proyecto_2_DL_sol/
+proyecto_Final/models/*.pth
 proyecto_final/traffic_sign_recognition/data/crop_dataset/
 proyecto_final/traffic_sign_recognition/data/test_data/
 proyecto_final/traffic_sign_recognition/data/*.csv
